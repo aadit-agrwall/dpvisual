@@ -216,3 +216,4 @@ assets/bookpage/*_bands/
 audit_*.txt
 FULL_AUDIT_REPORT.txt
 assets/bookpage/
+*.bak*
