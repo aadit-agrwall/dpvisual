@@ -1,7 +1,6 @@
 from manim import *
 import numpy as np
-from common.engine3d import *
-from common.engine3d_ml import *
+from lib3d import *
 
 
 class Test3DML(Stage3D):
@@ -38,7 +37,7 @@ class Test3DML(Stage3D):
         def cnn():
             self.caption("CNN forward pass")
             n = CNN3D(); n.reveal(self); n.forward(self, 0.5); n.reset(self)
-            self.view("front", 1.0); self.clear_scene()
+            self.view("slant", 1.0); self.clear_scene()
 
         def rnn():
             self.caption("RNN unrolled")
@@ -46,7 +45,7 @@ class Test3DML(Stage3D):
 
         def lstm():
             self.caption("LSTM cell")
-            l = LSTMCell3D(); l.reveal(self); self.view("front", 1.0)
+            l = LSTMCell3D(); l.reveal(self); self.view("slant", 1.0)
             l.fire(self, 0.4); l.reset(self); self.clear_scene()
 
         def attention():
@@ -55,7 +54,7 @@ class Test3DML(Stage3D):
 
         def graph():
             self.caption("Computation graph")
-            g = CompGraph3D.linear_loss(); g.reveal(self); self.view("front", 1.0)
+            g = CompGraph3D.linear_loss(); g.reveal(self); self.view("slant", 1.0)
             g.forward(self, 0.4); g.reset(self); g.backward(self, 0.4); g.reset(self)
             self.clear_scene()
 
@@ -83,7 +82,7 @@ class Test3DML(Stage3D):
 
         def resblock():
             self.caption("Residual block")
-            rb = ResBlock3D(); rb.reveal(self); self.view("front", 1.0)
+            rb = ResBlock3D(); rb.reveal(self); self.view("slant", 1.0)
             rb.fire(self, 0.4); rb.reset(self); self.clear_scene()
 
         def kmeans():
@@ -100,7 +99,7 @@ class Test3DML(Stage3D):
 
         def tree():
             self.caption("Decision tree")
-            t = DecisionTree3D(); t.reveal(self); self.view("front", 1.0)
+            t = DecisionTree3D(); t.reveal(self); self.view("slant", 1.0)
             t.fire_path(self, (0, 1, 0), 0.4); t.reset(self); self.clear_scene()
 
         def embed():

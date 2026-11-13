@@ -215,3 +215,4 @@ assets/bookpage/*_bands/
 *_backup*.py
 audit_*.txt
 FULL_AUDIT_REPORT.txt
+assets/bookpage/

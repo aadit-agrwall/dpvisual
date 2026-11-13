@@ -1,0 +1,9 @@
+import sys, json, pathlib
+sys.path.insert(0, str(pathlib.Path.cwd()))
+from scenes.chapter05.page_143 import write_wav
+from scenes.chapter05.page_145 import build_audio
+n = sys.argv[1]
+data = json.load(open(f"media/sfx/Page{n}_timeline.json"))
+buf, slog = build_audio(data)
+write_wav(buf, pathlib.Path(f"/tmp/page_{n}_sfx_fun.wav"))
+print(f"audio page {n}: {len(slog)} sounds, timeline {data['total']:.1f}s")

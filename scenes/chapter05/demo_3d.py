@@ -1,6 +1,6 @@
 from manim import *
 import numpy as np
-from common.engine3d import *
+from lib3d import *
 
 
 class Demo3D(Stage3D):
