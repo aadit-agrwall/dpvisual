@@ -31,7 +31,8 @@ class Page162(TomScene):
         self.end_scene(11)
         # scene 3: feedforward network, signal flows layer by layer
         head = H("Next: the feedforward network", 32).move_to(UP * (config.frame_height / 2 - 0.9))
-        c = T("Input → hidden layers → output", 28).move_to(DOWN * (config.frame_height / 2 - 1.1))
+        caption_inset = 1.8 if config.pixel_height > config.pixel_width else 1.1
+        c = T("Input → hidden layers → output", 28).move_to(DOWN * (config.frame_height / 2 - caption_inset))
         self.hud(head, c)
         e, L = net3d([3, 5, 5, 2], z0=-0.3)
         self.play(FadeIn(head), Create(e, lag_ratio=0.01), FadeIn(L), run_time=2.4)

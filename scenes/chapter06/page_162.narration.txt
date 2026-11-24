@@ -1,3 +1,3 @@
-TOM: Welcome to Part II, Deep Networks: Modern Practices. This part covers deep learning as it is used to solve practical applications.
-TOM: The focus is working technology. These are methods already used heavily in industry, not ideas still waiting to prove themselves.
-TOM: We start with the feedforward network, a model where data flows one way, from input to output. Stay notorious.
+TONY: What makes this network deep? | TOM: Follow the dots. Between input and output, the signal passes through several hidden layers.
+TONY: Where would we use a network like this? | TOM: Take a photo of a handwritten digit. A trained network can predict which digit it shows.
+TONY: Which way does the signal go? | TOM: From input to hidden layers to output. That's why we call it a feedforward network. Stay notorious.
