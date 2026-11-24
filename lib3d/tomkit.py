@@ -2,9 +2,9 @@ import os, json
 import numpy as np
 from manim import *
 
-BG = __import__("os").environ.get("TOM_BG", "#002A66")
-INK = "#FFFFFF"; HEAD = "#FFDE21"
-GRN = "#7CFFB2"; BLU = "#CFE3FF"; DIM = "#A9C4F0"; RED = "#FF9A9A"; ACC = "#FFDE21"
+BG = os.environ.get("TOM_BG", "#001A33")
+INK = "#FFFFFF"; HEAD = "#D4A817"
+GRN = "#7CFFB2"; BLU = "#CFE3FF"; DIM = "#A9C4F0"; RED = "#FF9A9A"; ACC = HEAD
 PHI = 68 * DEGREES; THETA = -35 * DEGREES
 
 def setup(page):
