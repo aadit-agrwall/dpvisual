@@ -1,0 +1,3 @@
+TOM: Welcome to Part II, Deep Networks: Modern Practices. This part covers deep learning as it is used to solve practical applications.
+TOM: The focus is working technology. These are methods already used heavily in industry, not ideas still waiting to prove themselves.
+TOM: We start with the feedforward network, a model where data flows one way, from input to output. Stay notorious.

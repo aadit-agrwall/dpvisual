@@ -1,0 +1,36 @@
+{
+  "tom": {
+    "name": "Tom",
+    "svg": "tom.svg",
+    "eyes": "",
+    "mouth": "",
+    "brow": "",
+    "flip": "0",
+    "voice": "media/voice/eleven_choice.json",
+    "default_voice": {
+      "voice_id": "SOYHLrjzK2X1ezoPC6cr",
+      "name": "Harry - Fierce Warrior",
+      "model": "eleven_multilingual_v2",
+      "stability": 0.45,
+      "similarity": 0.8,
+      "style": 0.25
+    }
+  },
+  "tony": {
+    "name": "Tony",
+    "svg": "tony.svg",
+    "eyes": "",
+    "mouth": "",
+    "brow": "",
+    "flip": "1",
+    "voice": "media/voice/tony_choice.json",
+    "default_voice": {
+      "voice_id": "hpp4J3VqNfWAUOO0d1Us",
+      "name": "Bella - Professional, Bright, Warm",
+      "model": "eleven_multilingual_v2",
+      "stability": 0.35,
+      "similarity": 0.75,
+      "style": 0.45
+    }
+  }
+}
