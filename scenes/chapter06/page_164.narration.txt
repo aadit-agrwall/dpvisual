@@ -1,0 +1,4 @@
+TONY: What is a feedforward network actually trying to do? | TOM: Approximate an unknown target function, f star, by learning parameters theta. The blue surface chases the gray one.
+TONY: Does information ever flow backwards? | TOM: No. Input x flows through computations to output y. Add feedback connections and it becomes a recurrent network.
+TONY: Why does this matter in practice? | TOM: Convolutional networks for object recognition are specialized feedforward networks. They are also the stepping stone to recurrent networks for language.
+TONY: So why call them networks? | TOM: They compose functions in a chain: f one, f two, f three. Each function is a layer. Stay notorious.

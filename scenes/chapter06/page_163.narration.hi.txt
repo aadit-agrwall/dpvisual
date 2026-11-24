@@ -1,0 +1,4 @@
+TONY: शुरुआत कहाँ से करें? | TOM: एक असली काम से। Parcel पर लिखा digit पढ़ो और उसे सही chute में भेजो।
+TONY: Network को सिखाएगा कौन? | TOM: हम pixels और सही digit देते हैं। Mapping उसे सीखनी है। Test labels में झाँकना मना है।
+TONY: रट्टा लगाया तो पकड़ेंगे कैसे? | TOM: नई handwriting दिखाओ। अब training set याद करने की चाल काम नहीं आएगी।
+TONY: आगे क्या है? | TOM: Network बनाओ, overfitting रोको, फिर optimize करो। Images और sequences के लिए अलग architectures मिलेंगे।

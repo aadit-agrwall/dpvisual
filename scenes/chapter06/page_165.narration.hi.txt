@@ -1,0 +1,4 @@
+TONY: Deep का मतलब कितना deep है? | TOM: Depth यानी layers की chain की लंबाई। इसी से deep learning को अपना नाम मिला है। आख़िरी layer output layer कहलाती है।
+TONY: क्या data हर layer को बताता है कि उसे क्या करना है? | TOM: नहीं। Labels y सिर्फ़ output layer को तय करते हैं। बाकी hidden layers कहलाती हैं, क्योंकि उनके targets कभी दिखाए नहीं जाते।
+TONY: Width क्या है, और unit क्या होता है? | TOM: Width यानी एक hidden layer में कितने units हैं। हर unit एक activation निकालता है, कुछ-कुछ neuron की तरह।
+TONY: सीधा linear model क्यों नहीं इस्तेमाल करते? | TOM: वह आसानी से fit हो जाता है, पर inputs के बीच की interactions चूक जाता है। हल है transformed input, phi of x। Stay notorious.

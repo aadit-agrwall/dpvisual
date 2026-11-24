@@ -1,0 +1,4 @@
+TONY: Feedforward network असल में क्या करने की कोशिश करता है? | TOM: वह एक अनजाने target function, f star, को parameters theta सीखकर approximate करता है। नीली surface ग्रे surface का पीछा करती है।
+TONY: क्या information कभी पीछे की ओर भी बहती है? | TOM: नहीं। Input x, computations से गुज़रकर output y तक जाता है। अगर feedback connections जोड़ दें, तो वह recurrent network बन जाता है।
+TONY: असल ज़िंदगी में इससे क्या फ़र्क पड़ता है? | TOM: Object recognition वाले convolutional networks खास तरह के feedforward networks होते हैं। वे भाषा वाले recurrent networks की तरफ़ पहला कदम भी हैं।
+TONY: तो इन्हें networks क्यों कहते हैं? | TOM: ये functions को एक chain में जोड़ते हैं: f one, f two, f three। हर function एक layer है। Stay notorious.

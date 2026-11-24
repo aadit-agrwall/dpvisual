@@ -24,7 +24,7 @@ def ff(*a):
     if r.returncode:
         sys.exit("ffmpeg failed: " + r.stderr[-600:])
 
-def tts(text, who, language=DLANG):
+def tts(text, who, language=DLANG, expressive=False):
     vp = ROOT / CHARS[who]["voice"]
     if language != "en":
         alt = vp.with_name(vp.stem + "." + language + vp.suffix)
@@ -38,6 +38,8 @@ def tts(text, who, language=DLANG):
           "style": ch.get("style", 0.25), "use_speaker_boost": True}
     if who == "tony":
         vs["speed"] = 1.05
+    if expressive and who == "tom":
+        vs.update(stability=0.35, style=0.44, speed=1.06)
     h = hashlib.sha1(json.dumps([ch["voice_id"], model, vs, text, SR], sort_keys=True).encode()).hexdigest()[:16]
     wav = CACHE / f"{h}.wav"
     if not wav.exists():

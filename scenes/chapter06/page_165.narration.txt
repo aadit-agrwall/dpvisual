@@ -1,0 +1,4 @@
+TONY: How deep is deep? | TOM: Depth is the length of the chain of layers. That is where deep learning gets its name. The final layer is the output layer.
+TONY: Does the data tell every layer what to do? | TOM: No. Labels y only specify the output layer. The others are hidden layers, because their targets are never shown.
+TONY: What is width, and what is a unit? | TOM: Width is how many units a hidden layer has. Each unit computes one activation, loosely like a neuron.
+TONY: Why not just use a linear model? | TOM: It fits easily but misses interactions between inputs. The fix is a transformed input, phi of x. Stay notorious.

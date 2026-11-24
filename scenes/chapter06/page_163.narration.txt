@@ -1,0 +1,4 @@
+TONY: Where do we start? | TOM: With a real job. Read the digit on a parcel, and send it down the right chute.
+TONY: Who teaches the network? | TOM: We supply the pixels and the correct digit. Its job is to learn the mapping. No peeking at test labels.
+TONY: How do we catch a cheat? | TOM: Show it fresh handwriting. Memorizing the training set won't save it now.
+TONY: What's next? | TOM: Build the network, control overfitting, then optimize. Images and sequences get their own architectures.
