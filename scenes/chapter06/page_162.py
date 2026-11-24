@@ -2,42 +2,81 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib3d"))
 from tomkit import *
+from daemon_style import CYAN, EDGE, ICE, chrome, copy_block, label, plate
+
 setup(162)
+SEVEN = ["0000000", "0111110", "0000110", "0001000", "0011000", "0010000", "0100000"]
+STROKE = ["0000000", "0111110", "0000000", "0000000", "0000000", "0000000", "0000000"]
+ANGLE = ["0000000", "0001110", "0000110", "0001000", "0000000", "0000000", "0000000"]
+EMPTY = ["0000000"] * 7
+
 
 class Page162(TomScene):
     def construct(self):
-        self.begin()
-        # scene 1: part title + 3D network
-        part = H("PART II", 30).move_to(UP * (config.frame_height / 2 - 0.9))
-        title = VGroup(H("Deep Networks:", 46), H("Modern Practices", 46)).arrange(DOWN, buff=0.12).next_to(part, DOWN, buff=0.3)
-        self.hud(part, title)
-        e, L = net3d([3, 5, 5, 2], z0=-1.3)
-        self.play(FadeIn(part), run_time=0.6)
-        self.play(FadeIn(title), run_time=1.4)
-        self.play(Create(e, lag_ratio=0.01), run_time=2.2)
-        self.play(FadeIn(L), run_time=0.8)
-        self.end_scene(11)
-        # scene 2: working technology staircase
-        head = H("Working technology", 34).move_to(UP * (config.frame_height / 2 - 0.9))
-        lines = VGroup(T("Deep learning for practical applications", 24), T("Methods that already work", 24),
-                       T("Used heavily in industry", 24)).arrange(DOWN, buff=0.22).next_to(head, DOWN, buff=0.35)
-        self.hud(head, lines)
-        s1 = slab(1.1, 0.8, -1.3, -2.6, BLU); s2 = slab(1.1, 1.6, 0.0, -2.6, BLU); s3 = slab(1.1, 2.4, 1.3, -2.6, GRN)
-        self.play(FadeIn(head), FadeIn(lines[0]), FadeIn(s1, shift=OUT * 0.5), run_time=1.2)
-        self.wait(1.5)
-        self.play(FadeIn(lines[1]), FadeIn(s2, shift=OUT * 0.5), run_time=1.0)
-        self.wait(2.0)
-        self.play(FadeIn(lines[2]), FadeIn(s3, shift=OUT * 0.5), run_time=1.0)
-        self.end_scene(11)
-        # scene 3: feedforward network, signal flows layer by layer
-        head = H("Next: the feedforward network", 32).move_to(UP * (config.frame_height / 2 - 0.9))
-        caption_inset = 1.8 if config.pixel_height > config.pixel_width else 1.1
-        c = T("Input → hidden layers → output", 28).move_to(DOWN * (config.frame_height / 2 - caption_inset))
-        self.hud(head, c)
-        e, L = net3d([3, 5, 5, 2], z0=-0.3)
-        self.play(FadeIn(head), Create(e, lag_ratio=0.01), FadeIn(L), run_time=2.4)
-        for layer in L:
-            self.play(Indicate(layer, color=HEAD, scale_factor=1.25), run_time=0.8)
-        self.play(FadeIn(c), run_time=0.8)
-        self.end_scene(11, last=True)
+        self.cuts = []
+        self.add(chrome("DEEP NETWORKS", 162))
+        portrait = config.frame_height > config.frame_width
+        center = RIGHT * (0 if portrait else 3.05) + DOWN * (.55 if portrait else .35)
+        captions = [
+            ("NETWORK DEPTH", "What makes it\ndeep?", "Count the hidden layers\nbetween pixels and prediction."),
+            ("IMAGE INPUT", "Which digit\ndo you see?", "Each lit tile is one pixel\nin the input image."),
+            ("FORWARD PASS", "Follow one\nprediction.", "In this example, a stroke and\na corner help identify a seven."),
+        ]
+
+        def cut(content):
+            self.play(FadeOut(content), run_time=.5)
+            self.cuts.append(round(self.renderer.time, 2))
+
+        def stack():
+            items = VGroup()
+            for i, (mask, name) in enumerate(zip([SEVEN, STROKE, ANGLE, EMPTY],
+                                                 ["INPUT", "HIDDEN 1", "HIDDEN 2", "OUTPUT"])):
+                panel = plate(mask, HEAD if i in (1,2) else CYAN)
+                panel.shift(center + UP*((i-1.5)*1.16) + RIGHT*((i-1.5)*.28-.47))
+                anchor = panel.get_right()
+                leader = Line(anchor, anchor+RIGHT*.34, color=EDGE, stroke_width=2)
+                text = label(name, 17, CYAN if i in (0,3) else HEAD, mono=True)
+                text.next_to(leader, RIGHT, buff=.08)
+                items.add(VGroup(panel, leader, text))
+            return items
+
+        title = copy_block(*captions[0])
+        layers = stack()
+        self.add(title)
+        for item in layers:
+            self.play(FadeIn(item, shift=UP*.25), run_time=.65)
+        for item in layers[1:3]:
+            self.play(Indicate(item[2], color=ICE), run_time=.75)
+        self.wait(6.9)
+        cut(VGroup(title, layers))
+
+        title = copy_block(*captions[1])
+        photo = plate(SEVEN).scale(1.52).shift(center)
+        self.add(title)
+        self.play(FadeIn(photo[0]), run_time=.6)
+        self.play(LaggedStart(*[FadeIn(cell) for cell in photo[1]], lag_ratio=.045), run_time=1.9)
+        self.wait(3)
+        result = label("YOUR READ   /   7", 27, HEAD, mono=True, bold=True)
+        result.next_to(photo, DOWN, buff=.52)
+        self.play(FadeIn(result, shift=UP*.12), run_time=.6)
+        self.wait(4.9)
+        cut(VGroup(title, photo, result))
+
+        title = copy_block(*captions[2])
+        layers = stack()
+        self.add(title, layers)
+        for layer in layers[1:]:
+            layer.set_opacity(.27)
+        self.wait(1.1)
+        for prior, following in zip(layers, layers[1:]):
+            a, b = prior[0].get_center(), following[0].get_center()
+            # Signals travel along parallel routes between successive feature maps.
+            traces = VGroup(*[Line(a+RIGHT*x, b+RIGHT*x, color=HEAD, stroke_width=5)
+                              for x in (-.52,0,.52)])
+            self.play(*[ShowPassingFlash(line, time_width=.55) for line in traces], run_time=1.0)
+            self.play(following.animate.set_opacity(1), run_time=.45)
+        answer = label("7", 46, HEAD, mono=True, bold=True).move_to(layers[-1][0])
+        answer.set_background_stroke(color=BG, width=6)
+        self.play(FadeIn(answer), run_time=.6)
+        self.wait(4.95)
         self.save_cues(162)
