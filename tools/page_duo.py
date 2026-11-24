@@ -5,7 +5,7 @@
 Narration lines: 'TONY: question | TOM: answer'  (no prefix = TOM)"""
 import os, sys, json, math, glob, hashlib, subprocess, pathlib, wave, re
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import tom
@@ -106,21 +106,70 @@ def rigs(height):
         out[k] = tom.load_rig(height)
     return out
 
-def frame(rig, key, i, a, fps, toff):
+def mouth_pose(body, key, opening, rounding):
+    """Draw the articulated jaw in unmirrored artwork coordinates."""
+    w, h = body.size
+    if key == "tom":
+        # The fox artwork ends at the nose. Give the jaw room underneath it.
+        extended = Image.new("RGBA", (w, h + round(.10*h)))
+        if opening:
+            draw = ImageDraw.Draw(extended)
+            x, y = .5*w, .975*h
+            width = (.075-.022*rounding)*w
+            depth = (.03+.077*opening)*h
+            draw.ellipse((x-width-1,y-depth*.27,x+width+1,y+depth), fill="#ddd0c1")
+            draw.ellipse((x-width,y-depth*.27,x+width,y+depth*.82), fill="#442632")
+            if opening > .35:
+                draw.ellipse((x-width*.62,y+depth*.48,x+width*.62,y+depth*.78),fill="#c47b75")
+        extended.alpha_composite(body)
+        return extended
+    if opening:
+        # Side view: hinge under the cheek, behind the upper tusk.
+        x,y = .245*w,.49*h
+        width, depth = (.062-.020*rounding)*w, (.008+.057*opening)*h
+        draw = ImageDraw.Draw(body)
+        draw.polygon([(x-width,y+depth*.15),(x+width,y-depth*.3),
+                      (x+width*.54,y+depth*.68),(x-width*.52,y+depth)],fill="#552f33")
+        if opening > .4:
+            draw.line([(x-width*.45,y+depth*.77),(x+width*.35,y+depth*.55)],
+                      fill="#c98c83",width=max(1,round(.009*h)))
+    return body
+
+
+def frame(rig, key, i, a, fps, toff, rounding=0):
     t = i / fps + toff
-    os.environ["TOM_FLIP"] = CHARS[key].get("flip", "0")
-    body = tom.pose(rig, a, t)
-    tw0, th0 = rig["size"]
-    br = 0.012 * math.sin(2 * math.pi * 0.5 * t)
-    sx, sy = 1 - 0.035 * a - br * 0.5, 1 + 0.07 * a + br
-    hop = int(0.05 * th0 * a)
-    tilt = 2.5 * math.sin(2 * math.pi * 0.7 * t) * (0.3 + a)
-    tw, th = max(1, int(tw0 * sx)), max(1, int(th0 * sy))
-    img = body.resize((tw, th), Image.BICUBIC)
-    cw, ch = int(tw0 * 1.3), int(th0 * 1.2)
-    canvas = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
-    canvas.alpha_composite(img, ((cw - tw) // 2, max(0, ch - th - 6 - hop)))
-    return canvas.rotate(tilt, resample=Image.BICUBIC, center=(cw / 2, ch - 6))
+    os.environ["TOM_FLIP"] = "0"
+    body = mouth_pose(tom.pose(rig, a, t), key, a, rounding)
+    if CHARS[key].get("flip") == "1":
+        body = body.transpose(Image.FLIP_LEFT_RIGHT)
+    width, height = rig["size"]
+    canvas = Image.new("RGBA", (int(width*1.3), int(height*1.2)), (0,0,0,0))
+    # Both heads stay anchored as the jaw changes shape.
+    canvas.alpha_composite(body, ((canvas.width-width)//2, canvas.height-body.height-3))
+    return canvas
+
+
+def articulation(wav, fps, count):
+    """Measure vowel energy and spectral balance in each displayed video frame."""
+    samples = read(wav)
+    bounds = np.rint(np.arange(count+1)*SR/fps).astype(int)
+    energy = np.zeros(count)
+    rounding = np.zeros(count)
+    for i in range(count):
+        segment = samples[bounds[i]:bounds[i+1]]
+        if len(segment) < 2:
+            continue
+        power = abs(np.fft.rfft(segment * np.hanning(len(segment))))**2
+        hz = np.fft.rfftfreq(len(segment), 1/SR)
+        low = power[(hz >= 150) & (hz < 950)].sum()
+        high = power[(hz >= 950) & (hz < 3500)].sum()
+        energy[i] = np.sqrt((low + .35*high) / len(segment)**2)
+        rounding[i] = low / (low + high + 1e-12)
+    speech = energy[energy > .0015]
+    reference = max(.01, np.percentile(speech, 90)) if len(speech) else 1.
+    aperture = np.clip((energy-.0015) / reference, 0, 1)**.65
+    return aperture, rounding
+
 
 def compose_duo(base, tom_wav, tony_wav, out, height):
     margin = int(os.environ.get("TOM_MARGIN", 24))
@@ -131,8 +180,7 @@ def compose_duo(base, tom_wav, tony_wav, out, height):
     W, H, fps, dur, _ = tom.probe(base)
     n = int(round(dur * fps))
     R = rigs(height)
-    env = {"tom": tom.voice_envelope(str(tom_wav), fps, n), "tony": tom.voice_envelope(str(tony_wav), fps, n)}
-    g = lambda e, i: float(e[i]) if i < len(e) else 0.0
+    env = {"tom": articulation(tom_wav, fps, n), "tony": articulation(tony_wav, fps, n)}
     sz = {k: (int(R[k]["size"][0] * 1.3), int(R[k]["size"][1] * 1.2)) for k in R}
     TW = sz["tony"][0] + gap + sz["tom"][0]
     TH = max(sz["tony"][1], sz["tom"][1])
@@ -140,7 +188,7 @@ def compose_duo(base, tom_wav, tony_wav, out, height):
            "-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{TW}x{TH}", "-r", f"{fps}", "-i", "-",
            "-i", str(tom_wav), "-i", str(tony_wav),
            "-filter_complex",
-           f"[0:v][1:v]overlay=main_w-overlay_w-{margin}:main_h-overlay_h-{margin // 2}:shortest=1[v];"
+           f"[0:v]fps={fps}[base];[base][1:v]overlay=main_w-overlay_w-{margin}:main_h-overlay_h-{margin // 2}:shortest=1[v];"
            f"[2:a]volume={tg}[a1];[3:a]volume={yg}[a2];"
            f"[a1][a2]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95[a]",
            "-map", "[v]", "-map", "[a]", "-t", f"{dur:.3f}", "-c:v", "libx264", "-pix_fmt", "yuv420p",
@@ -149,8 +197,8 @@ def compose_duo(base, tom_wav, tony_wav, out, height):
     try:
         for i in range(n):
             canvas = Image.new("RGBA", (TW, TH), (0, 0, 0, 0))
-            fy = frame(R["tony"], "tony", i, g(env["tony"], i), fps, 1.3)
-            ft = frame(R["tom"], "tom", i, g(env["tom"], i), fps, 0.0)
+            fy = frame(R["tony"], "tony", i, env["tony"][0][i], fps, 1.3, env["tony"][1][i])
+            ft = frame(R["tom"], "tom", i, env["tom"][0][i], fps, 0.0, env["tom"][1][i])
             canvas.alpha_composite(fy, (0, TH - fy.height))
             canvas.alpha_composite(ft, (sz["tony"][0] + gap, TH - ft.height))
             p.stdin.write(canvas.tobytes())
