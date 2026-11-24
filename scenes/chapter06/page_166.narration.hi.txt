@@ -1,0 +1,4 @@
+TONY: क्या एक सीधी line इन rings को अलग कर सकती है? | TOM: Center से दूरी नापो। Dots वही हैं, feature नया है। अब एक threshold से दोनों अलग।
+TONY: Feature map चुनेगा कौन? | TOM: एक रास्ता है generic kernel। RBF kernel पास के points की similarity निकालता है। Training में full marks मिले, तो भी नया sample चकमा दे सकता है।
+TONY: Feature मैं खुद बना सकती हूँ? | TOM: बिल्कुल। इन rings के लिए तुमने radius चुना। अच्छी चाल! लेकिन speech के लिए अलग features बनाने पड़ सकते हैं।
+TONY: Deep learning की चाल क्या है? | TOM: तुम maps की family चुनो। Training में theta features सीखता है, और w उनसे output बनाता है। आज़ादी बढ़ी, मगर training आम तौर पर nonconvex हो गई।

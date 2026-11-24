@@ -124,23 +124,28 @@ def publish(scene, video, dest, mode, tmp):
         tracks = narration(scene.with_suffix(".narration" + suffix), lang, starts, duration, tmp)
         outputs[lang] = tmp / f"{lang}.mp4"
         compose_duo(video, *tracks, outputs[lang], 128 if mode == "portrait" else 170)
-    # The lead language drives the character animation in each edition.
+    # Each edition uses the matching character animation and primary narration.
     base = video.stem
+    pan = "aformat=channel_layouts=stereo,pan=stereo|c0=0.225*c0+0.225*c1|c1=0.5*c0+0.5*c1"
+    tags = {"en": "eng", "hi": "hin"}
     for lang, alternate, filename in [("hi", "en", base), ("en", "hi", base + "_en")]:
-        tags = {"hi": "hin", "en": "eng"}
-        pan = "aformat=channel_layouts=stereo,pan=stereo|c0=0.225*c0+0.225*c1|c1=0.5*c0+0.5*c1"
-        mix = ";".join(f"[{i}:a]{pan}[v{i}];[v{i}][2:a]amix=inputs=2:duration=first:normalize=0[a{i}]" for i in range(2))
+        languages = [lang] if mode == "portrait" else [lang, alternate]
+        inputs, filters, maps = [], [], []
+        for i, language in enumerate(languages):
+            inputs.extend(["-i", str(outputs[language])])
+            filters.append(f"[{i}:a]{pan}[v{i}];[v{i}][{len(languages)}:a]amix=inputs=2:duration=first:normalize=0[a{i}]")
+            maps.extend(["-map", f"[a{i}]", f"-metadata:s:a:{i}", "language=" + tags[language],
+                         f"-disposition:a:{i}", "default" if i == 0 else "0"])
         subprocess.run([
-            "ffmpeg", "-nostdin", "-v", "error", "-i", str(outputs[lang]), "-i", str(outputs[alternate]),
-            "-i", str(effects), "-filter_complex", mix, "-map", "0:v", "-map", "[a0]", "-map", "[a1]", "-c:v", "copy",
-            "-c:a", "aac", "-b:a", "192k", "-metadata:s:a:0", "language=" + tags[lang],
-            "-metadata:s:a:1", "language=" + tags[alternate], "-disposition:a:0", "default",
-            "-disposition:a:1", "0", "-movflags", "+faststart", str(tmp / (filename + ".mp4"))
+            "ffmpeg", "-nostdin", "-v", "error", *inputs, "-i", str(effects),
+            "-filter_complex", ";".join(filters), "-map", "0:v", *maps,
+            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+            str(tmp / (filename + ".mp4"))
         ], check=True)
     for filename in [base, base + "_en"]:
         (tmp / (filename + ".mp4")).replace(dest / (filename + ".mp4"))
     # Refresh legacy Hindi filenames when a previous export used them.
-    if (dest / f"{base}_hi.mp4").exists():
+    if mode == "portrait" or (dest / f"{base}_hi.mp4").exists():
         (tmp / "legacy_hi.mp4").hardlink_to(dest / f"{base}.mp4")
         (tmp / "legacy_hi.mp4").replace(dest / f"{base}_hi.mp4")
         shutil.copyfile(tmp / "hi.srt", dest / f"{base}_hi.srt")
@@ -158,10 +163,24 @@ def main():
     timing = {} if args.visuals_only else {"DAEMON_BEATS": json.dumps(beat_lengths(scene))}
     for mode, folder, height in FORMATS:
         media = ROOT / "media/chapter_formats" / mode
-        subprocess.run([sys.executable, "-m", "manim", "render", "--progress_bar", "none",
-                        "--media_dir", str(media), str(scene), f"Page{page}"],
-                       env={**os.environ, **timing, f"P{page}_MODE": mode}, cwd=ROOT, check=True)
         video = media / f"videos/page_{page}/{height}p30/Page{page}.mp4"
+        env = {**os.environ, **timing, f"P{page}_MODE": mode}
+        if page == 166:
+            runtime = ROOT / "media/render-tools"
+            motion = runtime / "motion"
+            bundle = motion / "feature-map.cjs"
+            curves = motion / "curves.json"
+            subprocess.run([motion / "node_modules/.bin/esbuild", ROOT / "tools/motion/feature_map.mjs",
+                            "--bundle", "--platform=node", f"--outfile={bundle}"],
+                           env={**env, "NODE_PATH": str(motion / "node_modules")}, check=True)
+            curves.write_bytes(subprocess.check_output(["node", bundle]))
+            video.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([runtime / "gx/bin/python", scene, mode, video],
+                           cwd=ROOT, env={**env, "MOTION_CURVES": str(curves)}, check=True)
+        else:
+            subprocess.run([sys.executable, "-m", "manim", "render", "--progress_bar", "none",
+                            "--media_dir", str(media), str(scene), f"Page{page}"],
+                           env=env, cwd=ROOT, check=True)
         dest = ROOT / "media/output" / folder
         dest.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=dest) as work:

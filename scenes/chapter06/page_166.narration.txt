@@ -1,0 +1,4 @@
+TONY: Can one straight line separate these rings? | TOM: Try measuring distance from the center. Same dots, new feature. Now a single threshold splits them.
+TONY: Who picks that feature map? | TOM: One option is a generic kernel. An RBF kernel compares nearby points implicitly. A perfect training fit can still fumble a fresh sample.
+TONY: Could I design the feature myself? | TOM: Exactly. For these rings, you picked radius. Clever trick. A speech task might need a whole different toolbox.
+TONY: What changes in deep learning? | TOM: You choose a family of maps. Training tunes theta to extract features, and w to read them out. More flexibility, but generally a nonconvex training problem.
